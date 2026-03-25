@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 魔法生字花 🌸</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --bg-color: #F9FBE7;
+            --center-color: #FFEB3B;
+            --petal-color: #FFCDD2;
+            --line-color: #81C784;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft JhengHei';
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            text-shadow: 2px 2px 0px white;
+            margin-bottom: 10px;
+        }
+
+        /* 設定面板 */
+        #setup-panel {
+            background: white;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 2px solid var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input[type="number"], textarea, input[type="text"].link-output {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1em;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .hint {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: transform 0.1s, background 0.3s;
+        }
+
+        button:hover { background-color: #388E3C; }
+        button:active { transform: scale(0.98); }
+
+        .btn-share {
+            background-color: #2196F3;
+        }
+        .btn-share:hover { background-color: #1976D2; }
+
+        #share-area {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #E3F2FD;
+            border-radius: 8px;
+        }
+
+        /* 遊戲區塊 */
+        #game-board {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+        }
+
+        .flower-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        /* 畫線 */
+        .stem-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 160px;
+            background-color: var(--line-color);
+            transform-origin: top center;
+            z-index: 1;
+        }
+
+        /* 中心字 */
+        .center-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background-color: var(--center-color);
+            border: 4px solid #FBC02D;
+            border-radius: 50%;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .center-core input {
+            width: 80%;
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            border: none;
+            background: transparent;
+            outline: none;
+        }
+
+        /* 花瓣群組 */
+        .petal-group {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 2;
+            transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-180px) rotate(calc(-1 * var(--angle)));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radical-input {
+            width: 50px;
+            height: 50px;
+            background-color: var(--petal-color);
+            border: 3px solid #E57373;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .word-input {
+            width: 100px;
+            padding: 8px;
+            border: 2px dashed #90CAF9;
+            background-color: #E3F2FD;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .word-input:focus, .radical-input:focus {
+            border-style: solid;
+            border-color: #2196F3;
+        }
+
+        /* 控制按鈕 */
+        .control-bar {
+            margin: 20px 0;
+            display: none;
+        }
+        .btn-secondary {
+            background-color: #FF9800;
+            width: auto;
+            margin: 0 10px;
+        }
+        .btn-secondary:hover { background-color: #F57C00; }
+        
+    </style>
+</head>
+<body>
+
+    <h1>🌸 魔法生字花 🌸</h1>
+
+    <div id="setup-panel">
+        <div class="form-group">
+            <label>老師出題區 (預設生字資料)：</label>
+            <textarea id="preset-data" rows="4" placeholder="格式範例：&#10;昜: 土, 木, 氵, 阝&#10;易: 足, 刂, 忄, 貝"></textarea>
+            <div class="hint">💡 若填寫此欄，系統會自動幫您建立花朵與部首。</div>
+        </div>
+        
+        <div class="form-group" id="manual-settings">
+            <label>如果上方留白，請設定空花朵數量：</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="flower-count" min="1" max="10" value="2" title="花朵數量">朵
+                <input type="number" id="petal-count" min="3" max="8" value="4" title="花瓣數量">瓣
+            </div>
+            <div class="hint">💡 建議花瓣數 3~6 瓣視覺效果最佳！</div>
+        </div>
+
+        <div class="btn-group">
+            <button onclick="generateFlowers(false)">✨ 自己測試</button>
+            <button class="btn-share" onclick="generateStudentLink()">🔗 產生學生連結</button>
+        </div>
+
+        <div id="share-area">
+            <label>將此連結複製給學生：</label>
+            <input type="text" id="student-link" class="link-output" readonly>
+            <div class="hint">學生點擊連結後會直接進入作答畫面，且無法回上一頁修改題目。</div>
+        </div>
+    </div>
+
+    <div class="control-bar" id="control-bar">
+        <button class="btn-secondary" onclick="resetSetup()">🔄 回到設定</button>
+    </div>
+
+    <div id="game-board"></div>
+
+    <script>
+        // 頁面載入時，檢查網址是否有包含學生資料 (?data=...)
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const studentData = params.get('data');
+            
+            if (studentData) {
+                // 如果是學生模式，將資料放入框框中，並直接生成畫面
+                document.getElementById('preset-data').value = decodeURIComponent(studentData);
+                generateFlowers(true); // true 代表是學生模式
+            }
+        }
+
+        function generateStudentLink() {
+            const presetText = document.getElementById('preset-data').value.trim();
+            if (presetText === "") {
+                alert("請先在上方輸入題目資料！");
+                return;
+            }
+
+            // 將中文和特殊符號轉換成網址安全格式
+            const encodedData = encodeURIComponent(presetText);
+            
+            // 組合出目前的網址 + 參數
+            const baseUrl = window.location.href.split('?')[0];
+            const shareUrl = baseUrl + "?data=" + encodedData;
+
+            // 顯示連結區塊
+            const shareArea = document.getElementById('share-area');
+            const linkInput = document.getElementById('student-link');
+            shareArea.style.display = 'block';
+            linkInput.value = shareUrl;
+            linkInput.select();
+            document.execCommand("copy"); // 嘗試自動複製到剪貼簿
+            alert("✅ 連結已產生並複製！您可以直接貼給學生了。");
+        }
+
+        function generateFlowers(isStudentMode) {
+            const setupPanel = document.getElementById('setup-panel');
+            const gameBoard = document.getElementById('game-board');
+            const controlBar = document.getElementById('control-bar');
+            const presetText = document.getElementById('preset-data').value.trim();
+            
+            gameBoard.innerHTML = ''; // 清空畫布
+
+            let flowersData = [];
+
+            if (presetText !== "") {
+                const lines = presetText.split('\n');
+                lines.forEach(line => {
+                    if(line.includes(':') || line.includes('：')) {
+                        let parts = line.split(/[:：]/);
+                        let core = parts[0].trim();
+                        let radicals = parts[1].split(/[,，、\s]+/).filter(r => r.trim() !== "");
+                        flowersData.push({ core: core, radicals: radicals, count: radicals.length });
+                    }
+                });
+            } else {
+                const fCount = parseInt(document.getElementById('flower-count').value);
+                const pCount = parseInt(document.getElementById('petal-count').value);
+                for(let i=0; i<fCount; i++) {
+                    flowersData.push({ core: "", radicals: Array(pCount).fill(""), count: pCount });
+                }
+            }
+
+            if(flowersData.length === 0) {
+                alert("請檢查輸入格式，或直接設定空花朵數量！");
+                return;
+            }
+
+            // 生成花朵 UI
+            flowersData.forEach(data => {
+                const flowerDiv = document.createElement('div');
+                flowerDiv.className = 'flower-container';
+
+                const coreDiv = document.createElement('div');
+                coreDiv.className = 'center-core';
+                // 若為學生模式，母字鎖定不可修改 (readonly)
+                const readonlyAttr = isStudentMode ? "readonly" : "";
+                coreDiv.innerHTML = `<input type="text" value="${data.core}" placeholder="母字" ${readonlyAttr}>`;
+                flowerDiv.appendChild(coreDiv);
+
+                const petalCount = data.count;
+                const angleStep = 360 / petalCount;
+
+                for(let i = 0; i < petalCount; i++) {
+                    let currentAngle = i * angleStep;
+
+                    const line = document.createElement('div');
+                    line.className = 'stem-line';
+                    line.style.transform = `rotate(${currentAngle}deg)`;
+                    flowerDiv.appendChild(line);
+
+                    const petalGroup = document.createElement('div');
+                    petalGroup.className = 'petal-group';
+                    petalGroup.style.setProperty('--angle', `${currentAngle}deg`);
+
+                    const radicalVal = data.radicals[i] || "";
+                    // 若為學生模式，部首鎖定不可修改
+                    const radicalReadonly = (isStudentMode && radicalVal !== "") ? "readonly" : "";
+                    
+                    petalGroup.innerHTML = `
+                        <input type="text" class="radical-input" value="${radicalVal}" placeholder="部首" ${radicalReadonly}>
+                        <input type="text" class="word-input" placeholder="新字 造詞">
+                    `;
+                    flowerDiv.appendChild(petalGroup);
+                }
+
+                gameBoard.appendChild(flowerDiv);
+            });
+
+            // 切換畫面
+            setupPanel.style.display = 'none';
+            gameBoard.style.display = 'flex';
+
+            // 如果是學生模式，不顯示「回到設定」按鈕，防止學生改題目
+            if (isStudentMode) {
+                controlBar.style.display = 'none';
+            } else {
+                controlBar.style.display = 'block';
+            }
+        }
+
+        function resetSetup() {
+            document.getElementById('setup-panel').style.display = 'block';
+            document.getElementById('control-bar').style.display = 'none';
+            document.getElementById('game-board').style.display = 'none';
+            document.getElementById('share-area').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
